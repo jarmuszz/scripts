@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Battery warning daemon
+
+: ${INTERVAL:=10}
+: ${WARN_AT:="60 25 15 10 5"}
+: ${BAT_PATH:=/sys/class/power_supply/BAT1}
+: ${AC_PATH:=/sys/class/power_supply/AC}
+
+while :; do
+  cap=$(cat ${BAT_PATH}/capacity)
+
+  [ "$cap" != "$LAST_CHECK" ] && {
+    for level in $WARN_AT; do
+      [ "$level" = "$cap" ] && notify-send -u critical "Battery at ${level}%"
+    done
+
+    LAST_CHECK=$cap
+  }
+
+  sleep $INTERVAL
+done

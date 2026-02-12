@@ -1,0 +1,22 @@
+#!/bin/sh
+ mediainfo $@ | 
+	awk '
+/name/ {
+	name = $4
+}
+
+/Width/ {
+	w=$3 
+	if ($4 != "pixels") {
+		w = w $4
+	}
+}
+
+/Height/ { 
+	h=$3
+	if ($4 != "pixels") {
+		h = h $4
+	}
+	printf "%-50s %s\n", name, w / h
+}
+'

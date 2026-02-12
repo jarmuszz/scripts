@@ -1,0 +1,41 @@
+#!/bin/sh
+
+: ${SUDO=doas}
+
+UPDATE=1
+FLAGS=
+
+[ "$(id -u)" != 0 ] && {
+	$SUDO $0 $@
+	exit $?
+}
+
+# main logic
+for arg; do
+	case "$arg" in
+		up)
+			ACTION="upgrade"
+			;;
+		in)
+			ACTION="install"
+			;;
+		rm)
+			ACTION="remove"
+			;;
+		no-update)
+			unset -v UPDATE
+			;;
+		with-new-pkgs)
+			FLAGS="${FLAGS} --with-new-pkgs"
+			;;
+		*) 
+			TARGTETS="$TARGTETS $arg"
+			;;
+	esac
+done
+
+[ -n "$UPDATE" ]	&&
+	apt update	||
+	exit 1
+
+apt "$ACTION" $TARGTETS

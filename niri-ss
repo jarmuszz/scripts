@@ -1,0 +1,21 @@
+#!/bin/sh
+set -euo pipefail
+
+mkdir -p /tmp/stmp/ss
+SS_PATH="/tmp/stmp/ss/$(mcookie).png"
+
+niri msg action screenshot --path "$SS_PATH" -p false
+
+inotifywait -q -e close_write /tmp/stmp/ss
+
+[ -f "$SS_PATH" ] && {
+  satty \
+    -f "${SS_PATH}" \
+    --disable-notifications \
+    --initial-tool brush \
+    --copy-command wl-copy \
+    --early-exit
+}
+
+rm "$SS_PATH"
+

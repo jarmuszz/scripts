@@ -1,0 +1,144 @@
+#!/bin/sh
+# epb - Intel Performance and Energy Bias Hint (EPB) control
+
+usage() {
+	printf '%s: [-p | -P | -s | -n value]\n' "$(basename $0)" >&2
+}
+
+panic() {
+	printf "$1\n" ${@#"$1"}
+	usage
+	exit 1
+}
+
+flags_colide() {
+	[ -n "$ACTION" ] &&
+		panic 'You cannot use both "%s" and "%s" at the same time.\nNothing happened.'\
+			"$1" "$ACTION_ARG"
+}
+
+epb_path() {
+		printf "/sys/devices/system/cpu/cpu%s/power/energy_perf_bias\n" $@
+}
+
+gorvenor_path() {
+		printf "/sys/devices/system/cpu/cpu%s/cpufreq/scaling_governor\n" $@
+}
+
+epb_change() {
+	for cpu in $CPUS; do
+		[ ! -e "$cpu" ] && panic 'Panic: "%s" does not exist!\nNothing happened.' $cpu
+	done
+
+	[ "$2" -gt -1 ] 2>/dev/null  || panic 'Invalid EPB value: "%s".\nNothing happened.' "$2"
+	[ "$2" -lt 16 ]  2>/dev/null || panic 'Invalid EPB value: "%s".\nNothing happened.' "$2"
+
+	[ "$(id -u)" = "0" ]  || panic 'You have to be root to change the EPB value.'
+
+	# All of the checks done. Destructive behavior starts here
+	for cpu in $CPUS; do
+		echo $2 > $cpu
+	done
+}
+
+epb_status() {
+	for cpu in $CPUS; do
+		[ ! -e "$cpu" ] && panic 'Panic: "%s" does not exist!\nNothing happened.' $cpu
+	done
+
+	for cpu in $CPUS; do
+		cpu_strip="${cpu#/sys/devices/system/cpu/}"
+		printf '%s: %s\n' "${cpu_strip%%/*}" "$(cat $cpu)"
+	done
+
+	# Just to be sure
+	unset -v cpu_strip
+}
+
+status() {
+	for cpu in $CPUS; do
+		[ ! -e "$cpu" ] && panic 'Panic: "%s" does not exist!\nNothing happened.' $cpu
+	done
+
+  for n in $(seq 0 $(( $(nproc) - 1 ))); do
+    epb=$(cat $(epb_path $n))
+    gorvenor=$(cat $(gorvenor_path $n))
+		printf '%s: %s, %s\n' "${n}" "${gorvenor}" "${epb}"
+  done
+
+	# Just to be sure
+	unset -v epb gorvenor
+}
+
+gorvernor_change() {
+	for cpu in $GORVENORS; do
+		[ ! -e "$cpu" ] && panic 'Panic: "%s" does not exist!\nNothing happened.' $cpu
+	done
+
+	[ "$(id -u)" = "0" ]  || panic 'You have to be root to change the gorvenor.'
+
+	# All of the checks done. Destructive behavior starts here
+	for cpu in $GORVENORS; do
+		echo $2 > $cpu
+	done
+}
+
+# Main logic
+CPUS="$(epb_path $(seq 0 $(( $(nproc) - 1)) ))"
+GORVENORS="$(gorvenor_path $(seq 0 $(( $(nproc) - 1)) ))"
+
+for _; do
+	case "$1" in
+		"") break;; # the for loop does not reevaluate the "$@"
+		-n)
+			flags_colide "$1"
+			[ -z "$2" ] && panic 'Flag "%s" requires an argument.' "$1"
+
+			ACTION="epb_change $1 $2"
+			ACTION_ARG="$1"
+
+			shift 2
+			;;
+    -g)
+      flags_colide "$1"
+			[ -z "$2" ] && panic 'Flag "%s" requires an argument.' "$1"
+
+			ACTION="gorvernor_change $1 $2"
+			ACTION_ARG="$1"
+
+			shift 2
+      ;;
+    -p)
+      flags_colide "$1"
+
+			ACTION="gorvernor_change $1 powersave"
+			ACTION_ARG="$1"
+
+			shift
+      ;;
+    -P)
+      flags_colide "$1"
+
+			ACTION="gorvernor_change $1 performance"
+			ACTION_ARG="$1"
+
+			shift
+      ;;
+		-s)
+			flags_colide "$1"
+
+			ACTION="epb"
+			ACTION_ARG="$1"
+			;;
+		-h)
+			usage
+			exit 0
+			;;
+		*)
+			panic 'Invalid argument: "%s"' "$1"
+			;;
+	esac
+done
+
+[ -z "$ACTION" ] && ACTION="status"
+$ACTION

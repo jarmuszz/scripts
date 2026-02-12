@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ICON=~/.config/eww/icons/notification-symbolic-msg.svg
+
+printf '\a'
+notify-send -i "$ICON" "Bell Rang" "$@"

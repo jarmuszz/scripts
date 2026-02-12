@@ -1,0 +1,13 @@
+#!/bin/sh
+
+[ -z "$1" ] && {
+	echo "Please supply an argument" >&2
+	exit 1
+}
+
+JSON="$(curl -s https://api.dictionaryapi.dev/api/v2/entries/en/${1})"
+
+jq '.[].phonetic' <<< $JSON
+jq -M '.[].meanings[0].definitions[].definition?' <<< $JSON | sed 's/\(^"\|"$\)//g' | while read -r def; do
+	printf '\e[31m*\e[0m %s\n' "$(fmt <<< $def | sed 's/^/  /; 1s/^  //')"
+done

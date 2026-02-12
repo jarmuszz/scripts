@@ -1,0 +1,91 @@
+#!/bin/sh
+# XTerm bar for Linux.
+
+WIDTH=170
+
+[ -z "$1" ] && {
+	. ~/.cache/wal/colors.sh
+	xterm -name xtbar	\
+		-title xtbar	\
+		-geometry ${WIDTH}x1+0+0	\
+		-e "$0 --script"
+	exit $?
+}
+
+BATTERY_OFFSET=165
+VOLUME_OFFSET=160
+CLOCK_OFFSET=1
+WORKSPACES_OFFSET=76
+
+WS_FIRST=1
+WS_LAST=9
+WSLIST="$(seq $WS_FIRST $WS_LAST | tr '\n' ' ')"
+WSLIST="${WSLIST% }"
+
+battery() {
+	bat="$(cat /sys/class/power_supply/BAT0/capacity)"
+
+	tput sc
+	tput cup 0 $BATTERY_OFFSET
+
+	if [ "$bar" = "100" ]; then
+		printf "full"
+	else
+		printf "%3d%%" "$bat"
+	fi
+
+	tput rc
+	unset -v bat
+}
+
+volume() {
+	vol="$(amixer sget Master | grep -o -m 1 '[0-9]\+%')"
+
+	tput sc
+	tput cup 0 $VOLUME_OFFSET
+
+	printf "%s" "$pcm" "${vol#*:}"
+
+	tput rc
+}
+
+clock() {
+	tput sc
+	tput cup 0 $CLOCK_OFFSET
+
+	printf "%s" "$(date +%H:%M)"
+
+	tput rc
+}
+
+workspaces() {
+	current="$(xprop -root _NET_CURRENT_DESKTOP)"
+	current="${current##* }"
+
+	tput sc
+	tput cup 0 $WORKSPACES_OFFSET
+
+	printf '%s' "$WSLIST" | sed "s/${current}/•/"
+
+	tput rc
+	unset -v current 
+}
+
+# Invisible cursor
+tput civis
+
+# Main loop
+{
+	xprop -spy -root _NET_CURRENT_DESKTOP	&
+	while :; do sleep 1; echo; done &
+} | while read _; do
+	# Left
+	clock
+
+	# Center
+	workspaces
+
+	# Right
+	battery
+	volume
+done

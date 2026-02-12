@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+info="$(mpc current -f "%title%:%artist%:%album%")"
+
+[ -z "$(mpc current 2>/dev/null)" ] && exit 1
+
+IFS=:
+read song artist album <<<"$info"
+
+cat <<EOF
+now playing ♪
+song:  ${song}
+by:    ${artist}
+album: ${album}
+EOF

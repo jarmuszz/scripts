@@ -1,0 +1,12 @@
+#!/bin/sh
+set -euo pipefail
+: ${MUSICDIR:=~/music}
+: ${SYNCDIR:=~/.cache/musicSync}
+
+DIR=$1
+
+[ -d "${SYNCDIR}/${DIR}" ] || mkdir "${SYNCDIR}/$DIR"
+
+for f in "$DIR"/*; do 
+  ln "${MUSICDIR}/${f}" "${SYNCDIR}/${DIR}"
+done

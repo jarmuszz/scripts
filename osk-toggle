@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ "$(dconf read /org/gnome/desktop/a11y/applications/screen-keyboard-enabled)" = "false" ]; then
+	dconf write /org/gnome/desktop/a11y/applications/screen-keyboard-enabled true
+else
+	dconf write /org/gnome/desktop/a11y/applications/screen-keyboard-enabled false
+fi

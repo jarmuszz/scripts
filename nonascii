@@ -1,0 +1,13 @@
+#!/bin/sh
+de="
+a ä
+o ö
+u ü
+A Ä
+O Ö
+U Ü
+"
+
+eval echo '"$'"$1"'"' | while read -r a b; do
+	[ "$2" = "$a" ] && printf "%s" "$b"
+done

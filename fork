@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# 9
+
+usage() {
+	cat <<EOF
+Usage: fork COMMAND [ARGS...]
+EOF
+}
+
+[ -z "$1" ] && { 
+	usage >&2
+	exit 1
+}
+
+PROGNAME="$1"
+shift
+ARGS="$@"
+
+"$PROGNAME" $ARGS >/dev/null 2>/dev/null &

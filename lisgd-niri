@@ -1,0 +1,7 @@
+#!/bin/sh
+
+lisgd -v -d /dev/input/by-path/pci-0000:00:15.0-platform-i2c_designware.0-event \
+  -g "1,RL,B,*,R,niri msg action focus-column-right" \
+  -g "1,LR,B,*,R,niri msg action focus-column-left" \
+  -g "1,DU,B,*,R,niri msg action open-overview"     \
+  -g "1,UD,T,*,R,niri msg action toggle-window-floating"

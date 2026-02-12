@@ -1,0 +1,5 @@
+#!/bin/sh
+picom &
+~/src/cwm/cwm &
+( sleep 1; wmctrl -r :ACTIVE: -b add,fullscreen; ) &
+~/store/Squeak6.0-22104-64bit-202206021410-Linux-x64/squeak.sh -fullscreen

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -o pipefail
+
+: ${SSDIR:=$HOME/stmp/ss}
+: ${SSFORMATCMD:="date -Iseconds"}
+: ${SSEXT:=".png"}
+
+case $1 in
+	screen)
+		grim "${SSDIR}/$($SSFORMATCMD)${SSEXT}"
+		;;
+
+	area)
+		slurp | grim -g - "${SSDIR}/$($SSFORMATCMD)${SSEXT}"
+		;;
+
+	area-copy)
+    grim -g "$(slurp)" - | swappy -f - -o -
+    ;;
+esac

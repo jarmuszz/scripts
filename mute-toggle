@@ -1,0 +1,21 @@
+#!/bin/sh
+
+led() {
+	[ "$DEVICE" = "mic" ] && sysctl dev.acpi_ibm.0.mic_led=${1}
+}
+
+if [ "$1" = '-m' ]; then
+	DEVICE="mic"
+else
+	DEVICE="pcm"
+fi
+
+VOL_FILE="/tmp/vol-${DEVICE}"
+VOL="$(mixer -S $DEVICE | cut -d':' -f 2)"
+
+if [ "$VOL" -ne 0 ]; then
+	printf "%d" "$VOL" > "$VOL_FILE"
+	mixer "$DEVICE" 0 && led 0
+else
+	mixer "$DEVICE" "$(cat $VOL_FILE)" && led 1
+fi

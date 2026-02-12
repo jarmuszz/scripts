@@ -1,0 +1,48 @@
+#!/bin/sh
+
+LIGHT="rose-pine-dawn"
+LIGHTWP="/home/jarmusz/other/wallpapers/ceschi.png"
+
+DARK="rose-pine"
+LAST=/tmp/pywaltheme
+
+[ ! -e "/$LAST" ] && echo l > $LAST
+
+post() {
+	. ~/.cache/wal/colors.sh
+
+	# Restart CWM
+	pkill -f -SIGHUP cwm
+
+	# Restart xterm bar
+	pkill -f xtbar
+	xtbar &
+}
+
+case "$1" in
+	l)
+		wal -f "$LIGHT"
+		echo l > /tmp/pywaltheme
+		nitrogen --set-scaled "$LIGHTWP"
+		;;
+	d)
+		wal -f "$DARK"
+		echo d > /tmp/pywaltheme
+		;;
+	r)
+		$0 "$(cat /tmp/pywaltheme)"
+		exit
+		;;
+	c)
+		if [ "$(cat /tmp/pywaltheme)" != "d" ]; then
+			$0 d
+		else
+			$0 l
+		fi
+		exit
+		exit
+		;;
+	*)
+		echo "$0: l|d|c|r" >/dev/stderr
+esac
+post

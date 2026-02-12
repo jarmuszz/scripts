@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+gpart status | nawk '
+BEGIN {
+	i=0
+}
+/OK/ {
+	print i, "\t", $1
+	i++
+}'

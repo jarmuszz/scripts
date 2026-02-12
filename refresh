@@ -1,0 +1,47 @@
+#!/bin/sh
+
+: ${SUDO=sudo}
+
+usage() {
+	cat <<EOF
+$0: -[cs]
+	-c	Clear cache
+	-s	Remount swap
+EOF
+	exit 1
+}
+
+[ $# -eq 0 ] && usage
+
+[ "$(id -u)" != "0" ] && {
+	$SUDO $0 $@
+	exit $?
+}
+
+# Keep it simple, stupid
+for arg; do
+	case "$arg" in
+		-c) CACHE=yes ;;
+		-s) SWAP=yes ;;
+		-cs|-sc) 
+			SWAP=yes
+			CACHE=yes;;
+		*)  usage >&2 ;;
+	esac
+done
+
+[ "$CACHE" = "yes" ] && {
+	printf "Dropping caches..."
+	( cd /proc/sys/vm
+		echo 1 > drop_caches ) && echo "OK"
+}
+
+[ "$SWAP" = "yes" ] && (
+	printf "Remounting swap..."
+	{ set -e
+		#PART="/dev/$(lsblk | grep SWAP | grep -o 'sd.[0-9]')"
+		#swapoff $PART
+		#swapon $PART; 
+    swapoff -a
+    swapon -a; } && echo "OK"
+)

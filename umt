@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# umount(8) won't sync vfat by itself (?)
+_umt() { sync && umount $1; }
+
+if [ "$(basename $0)" = "umt" ]; then
+  MNT_CMD="_umt"
+else
+  MNT_CMD="mount"
+fi
+
+: ${SUDO:=doas}
+: ${MNT_COLORS:="bg+:6,fg+:0:regular,gutter:0,pointer:0:regular,hl:2"}
+
+
+# fuck it
+: ${MNT_PART:=${1:-"$(lsblk --list |
+                        grep -v "^NAME.*" |
+                        fzf --no-sort --tac --color="${MNT_COLORS}" |
+                        cut -d ' ' -f 1)"}}
+
+[ -z "$MNT_PART" ] && exit $EXIT
+[ -e "/dev/${MNT_PART}" ] || exit $EXIT
+
+[ "$(id -u)" != 0 ] && {
+  $SUDO $0 "$MNT_PART"
+  exit $?
+}
+
+$MNT_CMD "/dev/${MNT_PART}" /mnt

@@ -1,0 +1,7 @@
+#!/bin/sh
+export NIXPKGS_ALLOW_UNFREE=1
+
+PKG=$1
+shift
+
+nix run "nixpkgs#${PKG}" --impure -- $@

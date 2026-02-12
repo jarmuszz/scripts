@@ -1,0 +1,13 @@
+#!/bin/sh
+
+DATEFORMAT="%H:%M:%S"
+
+while :; do
+	bat=$(cat /sys/class/power_supply/BAT0/capacity)
+
+	music=$(mpc current -f "%artist% - %title%")
+
+	printf "%s ┊   %s%%   %s" "${music:-not playing}" "$bat" "$(date +${DATEFORMAT})"
+
+	sleep 1
+done

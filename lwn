@@ -1,0 +1,64 @@
+#!/bin/sh
+set -e
+
+ARTICLE_URL="https://lwn.net/Articles"
+ARTICLE_DL_DIR="${HOME}/docs/articles/lwn"
+ARTICLE_ID="$(date -I)S$(date +%S)"
+
+usage() {
+	cat <<EOF 
+$(basename $0): (URL | ARTICLE_NUMBER)
+EOF
+}
+
+list() {
+	curl -s 'https://lwn.net/Archives/' | awk '
+	/<a.*LWN.net Weekly Edition for .*<\/a>/ {
+		match($0, /[0-9]+/, ids)
+		id = ids[0]
+
+		match($0, /for .* [0-9]+, [0-9]{4}/, dates)
+		sub(/for /, "", dates[0])
+		date = dates[0]
+
+		print id " \t" date 
+	}
+	'
+}
+
+for arg; do
+	case "$arg" in
+		http*)
+			URL="$arg"
+			;;
+		[0-9]*)
+			URL="${ARTICLE_URL}/${arg}/bigpage"
+			;;
+		-p)
+			PDF=true
+			;;
+		-l)
+			list
+			exit 0
+			;;
+	esac
+done
+
+[ -z "$URL" ] && {
+	echo "No url supplied." >&2
+	usage >&2
+	exit 1
+}
+
+curl "$URL" > "${ARTICLE_DL_DIR}/${ARTICLE_ID}.html"
+
+printf "Saved as '%s'.\n" "${ARTICLE_DL_DIR}/${ARTICLE_ID}.html"
+
+[ "$PDF" ] && {
+	echo "Converting to PDF."
+	pandoc -f html -t pdf                     \
+		"${ARTICLE_DL_DIR}/${ARTICLE_ID}.html"  \
+		> "${ARTICLE_DL_DIR}/${ARTICLE_ID}.pdf"
+
+	printf "Converted to '%s'.\n" "${ARTICLE_DL_DIR}/${ARTICLE_ID}.pdf"
+}

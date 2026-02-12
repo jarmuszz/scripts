@@ -1,0 +1,3 @@
+#!/bin/sh
+dpkg-query -W -f '${Package}:${Priority}\n' | grep 'required\|important' | cut -d: -f1 | while read -r file; do ls /var/cache/apt/archives/${file}*{amd64,all}.deb 2>/dev/null; done | while read -r file; do cp $file ~/stmp/deb/archive/; done
+

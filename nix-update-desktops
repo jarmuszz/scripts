@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -feuo pipefail
+
+: ${NIX_DESKTOP_DIR=${HOME}/.nix-profile/share/applications}
+: ${SYS_DESKTOP_DIR=${HOME}/.local/share/applications}
+
+declare -a LOG=()
+
+# Creating a log
+set +f
+set -- ${NIX_DESKTOP_DIR}/*
+set -f
+
+for link; do
+	LOG+=( $(readlink $link) )
+done
+
+# Linking files from log
+set -- "${LOG[@]}"
+for link; do
+	ln -s "$link" "${SYS_DESKTOP_DIR}/"
+done
+
+# Writing the log
+rm -f "${SYS_DESKTOP_DIR}/.nix-desktops.log"
+for link; do
+	printf '%s\t%s\n'  "$(basename $link)" "$link" >> "${SYS_DESKTOP_DIR}/.nix-desktops.log"
+done
