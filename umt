@@ -9,7 +9,7 @@ else
   MNT_CMD="mount"
 fi
 
-: ${SUDO:=doas}
+: ${SUDO:=sudo}
 : ${MNT_COLORS:="bg+:6,fg+:0:regular,gutter:0,pointer:0:regular,hl:2"}
 
 
